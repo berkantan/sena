@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Romantik Kart Oyunu</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 95%;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            line-height: 1.2;
+        }
+
+        .question {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 25px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.3;
+            padding: 0 10px;
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            perspective: 1000px;
+            min-height: 140px;
+            align-items: center;
+            position: relative;
+        }
+
+        .card {
+            width: 80px;
+            height: 110px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .card span {
+            font-size: 0.8em;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .card:hover, .card:active {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before, .card:active::before {
+            animation: shine 0.5s ease;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .card.shuffling {
+            position: absolute;
+            z-index: 10;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .card.flipped {
+            animation: flip 0.6s ease;
+        }
+
+        @keyframes flip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+
+        .card.yes {
+            background: linear-gradient(135deg, #48bb78 0%, #68d391 100%);
+        }
+
+        .card.no {
+            background: linear-gradient(135deg, #f56565 0%, #fc8181 100%);
+        }
+
+        .card.closed {
+            background-image: url('https://d41chssnpqdne.cloudfront.net/user_upload_by_module/chat_bot/files/142866281/1pCNyYBbTI1lznj1.png?Expires=1753624818&Signature=jA9Xf9Y3k2jIqJjeLfs4MhkmHw0lCdWV6JJv1ORipZpS8ZEtFJRnZ2s4cP~X9LNxmm7O0lMi5N7P2ZdU8qIlrK9IXBNmBe5St9O89EJRZVgUfv2kIK-tkesn-iaqSbHeh8qMpSKRRsnTESX9jzgN5yHeUPgvJAx~M5Z3dTWjPf2xpPgt1il2dWfILUSe0dJsdhf~7mqm4oMJL09fK9mm3CBa7Nn-M3~46E6vRCMl3~-z1FIdck6dgpOO6e1DWE133JNH5Cmzb1U0vbSNhKiL8zL~S8CmQq90NLJNzG6zk0Xm1AfVNQjNuaDOcD2fn6jDQKPGGr0jiPljVPPVVJZulw__&Key-Pair-Id=K3USGZIKWMDCSX');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .card.closed::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 10px;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            touch-action: manipulation;
+            min-height: 44px;
+        }
+
+        .btn:hover, .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-size: 1em;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.3;
+            padding: 0 10px;
+        }
+
+        .heart {
+            color: #ff6b6b;
+            font-size: 1.5em;
+            animation: heartbeat 1s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .celebration {
+            color: #48bb78;
+            font-size: 1.2em;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .game-over {
+            color: #ff6b6b;
+            font-size: 1.1em;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Karıştırma animasyonu için özel efektler */
+        .card.shuffle-glow {
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Çok küçük ekranlar için */
+        @media (max-width: 320px) {
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                width: 70px;
+                height: 95px;
+                font-size: 0.8em;
+            }
+
+            .cards-container {
+                gap: 10px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .question {
+                font-size: 1em;
+            }
+        }
+
+        /* Yatay ekranlar için */
+        @media (orientation: landscape) and (max-height: 500px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                padding: 15px;
+                max-width: 90%;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+
+            .question {
+                font-size: 1em;
+                margin-bottom: 20px;
+            }
+
+            .cards-container {
+                min-height: 100px;
+                margin-bottom: 20px;
+            }
+
+            .card {
+                width: 70px;
+                height: 90px;
+            }
+
+            .buttons {
+                margin-top: 15px;
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.9em;
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>(: Eğlenmen Önemli :)</h1>
+        <div class="question">Seninle bir an paylaşmayı çok istiyorum, evet kartılını bulursan bir plan yapalım, HAYIR kartını bulursan kurtulursun :D</div>
+
+        <div class="cards-container" id="cardsContainer">
+            <div class="card no" id="card1">
+                <span>HAYIR</span>
+            </div>
+            <div class="card no" id="card2">
+                <span>HAYIR</span>
+            </div>
+            <div class="card yes" id="card3">
+                <span>EVET</span>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn" onclick="closeCards()" id="closeBtn">Kartları Kapat</button>
+            <button class="btn" onclick="shuffleCards()" id="shuffleBtn" style="display: none;">Kartları Karıştır</button>
+            <button class="btn" onclick="resetGame()">Yeniden Başla</button>
+        </div>
+
+        <div class="message" id="message">
+            Gördüğün gibi 2 HAYIR, 1 EVET var. Önce kartları kapat, sonra karıştır! 😉
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            cards: ['HAYIR', 'HAYIR', 'EVET'],
+            cardOrder: [0, 1, 2],
+            attempts: 0,
+            gamePhase: 'initial',
+            isShuffling: false,
+            hasPlayed: false
+        };
+
+        function closeCards() {
+            if (gameState.gamePhase !== 'initial') return;
+
+            const cards = document.querySelectorAll('.card');
+            const message = document.getElementById('message');
+            const closeBtn = document.getElementById('closeBtn');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+
+            gameState.gamePhase = 'closed';
+
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('flipped');
+                    setTimeout(() => {
+                        card.classList.remove('yes', 'no');
+                        card.classList.add('closed');
+                        card.innerHTML = '';
+                        card.classList.remove('flipped');
+                    }, 300);
+                }, index * 200);
+            });
+
+            setTimeout(() => {
+                closeBtn.style.display = 'none';
+                shuffleBtn.style.display = 'inline-block';
+                message.innerHTML = 'Kartlar kapatıldı! Şimdi karıştırmaya hazır! 😏';
+            }, 1000);
+        }
+
+        function shuffleCards() {
+            if (gameState.gamePhase !== 'closed' || gameState.isShuffling) return;
+
+            gameState.gamePhase = 'shuffling';
+            gameState.isShuffling = true;
+
+            const cards = document.querySelectorAll('.card');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const message = document.getElementById('message');
+
+            shuffleBtn.disabled = true;
+            message.innerHTML = 'Kartlar karıştırılıyor... 🔄';
+
+            performSmoothShuffle(cards).then(() => {
+                gameState.cards = ['EVET', 'EVET', 'EVET'];
+
+                gameState.gamePhase = 'playing';
+                gameState.isShuffling = false;
+
+                cards.forEach((card, index) => {
+                    card.onclick = () => selectCard(index + 1);
+                });
+
+                shuffleBtn.innerHTML = 'Yeniden Karıştır';
+                shuffleBtn.disabled = false;
+                shuffleBtn.onclick = reshuffleCards;
+
+                message.innerHTML = 'Kartlar karıştırıldı! Şimdi bir kart seç! (Sadece 1 hakkın var) 🎯';
+            });
+        }
+
+        function performSmoothShuffle(cards) {
+            return new Promise((resolve) => {
+                const container = document.getElementById('cardsContainer');
+                const containerRect = container.getBoundingClientRect();
+
+                const startPositions = [];
+                cards.forEach((card, index) => {
+                    const rect = card.getBoundingClientRect();
+                    startPositions[index] = {
+                        x: rect.left - containerRect.left,
+                        y: rect.top - containerRect.top
+                    };
+                    card.classList.add('shuffling', 'shuffle-glow');
+                });
+
+                // Mobil için daha küçük hareket mesafeleri
+                const shuffleSequence = [
+                    { duration: 600, moves: [
+                        { card: 0, x: 0, y: -20, rotation: -10 },
+                        { card: 1, x: 0, y: 0, rotation: 0 },
+                        { card: 2, x: 0, y: 20, rotation: 10 }
+                    ]},
+                    { duration: 800, moves: [
+                        { card: 0, x: -50, y: -25, rotation: -15 },
+                        { card: 1, x: 50, y: -25, rotation: 15 },
+                        { card: 2, x: 0, y: 40, rotation: 0 }
+                    ]},
+                    { duration: 600, moves: [
+                        { card: 0, x: 50, y: 25, rotation: 12 },
+                        { card: 1, x: -50, y: 25, rotation: -12 },
+                        { card: 2, x: 0, y: -40, rotation: 0 }
+                    ]},
+                    { duration: 800, moves: [
+                        { card: 0, x: -40, y: 0, rotation: -8 },
+                        { card: 1, x: 20, y: -30, rotation: 10 },
+                        { card: 2, x: 20, y: 30, rotation: -10 }
+                    ]},
+                    { duration: 600, moves: [
+                        { card: 0, x: -90, y: 0, rotation: 0 },
+                        { card: 1, x: 0, y: 0, rotation: 0 },
+                        { card: 2, x: 90, y: 0, rotation: 0 }
+                    ]}
+                ];
+
+                let currentStep = 0;
+
+                function executeStep() {
+                    if (currentStep >= shuffleSequence.length) {
+                        cards.forEach(card => {
+                            card.classList.remove('shuffling', 'shuffle-glow');
+                            card.style.transform = '';
+                        });
+                        resolve();
+                        return;
+                    }
+
+                    const step = shuffleSequence[currentStep];
+
+                    step.moves.forEach(move => {
+                        const card = cards[move.card];
+                        card.style.transform = `translate(${move.x}px, ${move.y}px) rotate(${move.rotation}deg)`;
+                    });
+
+                    setTimeout(() => {
+                        currentStep++;
+                        executeStep();
+                    }, step.duration);
+                }
+
+                executeStep();
+            });
+        }
+
+        function selectCard(cardNum) {
+            if (gameState.gamePhase !== 'playing' || gameState.hasPlayed) return;
+
+            gameState.hasPlayed = true;
+            const card = document.getElementById(`card${cardNum}`);
+            const message = document.getElementById('message');
+
+            const allCards = document.querySelectorAll('.card');
+            allCards.forEach(c => c.onclick = null);
+
+            card.classList.add('flipped');
+
+            setTimeout(() => {
+                const selectedAnswer = gameState.cards[cardNum - 1];
+                card.innerHTML = `<span>${selectedAnswer}</span>`;
+
+                card.classList.remove('closed');
+                card.classList.add('yes');
+
+                message.innerHTML = `<span class="game-over">Bende bu teklifi beklediğine emindim zaten 😜</span>`;
+
+                setTimeout(() => {
+                    card.classList.add('flipped');
+                    setTimeout(() => {
+                        card.classList.remove('yes');
+                        card.classList.add('closed');
+                        card.innerHTML = '';
+                        card.classList.remove('flipped');
+                    }, 300);
+                }, 1000);
+
+            }, 300);
+        }
+
+        function reshuffleCards() {
+            if (gameState.gamePhase !== 'playing' || gameState.isShuffling || gameState.hasPlayed) return;
+
+            gameState.isShuffling = true;
+            const cards = document.querySelectorAll('.card');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const message = document.getElementById('message');
+
+            shuffleBtn.disabled = true;
+            message.innerHTML = 'Kartlar yeniden karıştırılıyor... 🔄';
+
+            performSmoothShuffle(cards).then(() => {
+                gameState.isShuffling = false;
+                shuffleBtn.disabled = false;
+                message.innerHTML = 'Kartlar yeniden karıştırıldı!';
+            });
+        }
+
+        function resetGame() {
+            gameState = {
+                cards: ['HAYIR', 'HAYIR', 'EVET'],
+                cardOrder: [0, 1, 2],
+                attempts: 0,
+                gamePhase: 'initial',
+                isShuffling: false,
+                hasPlayed: false
+            };
+
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.classList.remove('flipped', 'yes', 'no', 'closed', 'shuffling', 'shuffle-glow');
+                card.style.transform = '';
+                card.onclick = null;
+                if (index < 2) {
+                    card.classList.add('no');
+                    card.innerHTML = '<span>HAYIR</span>';
+                } else {
+                    card.classList.add('yes');
+                    card.innerHTML = '<span>EVET</span>';
+                }
+            });
+
+            const closeBtn = document.getElementById('closeBtn');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+
+            closeBtn.style.display = 'inline-block';
+            shuffleBtn.style.display = 'none';
+            shuffleBtn.innerHTML = 'Kartları Karıştır';
+            shuffleBtn.disabled = false;
+            shuffleBtn.onclick = shuffleCards;
+
+            document.getElementById('message').innerHTML = 'Gördüğün gibi 2 HAYIR, 1 EVET var. Önce kartları kapat, sonra karıştır! 😉';
+        }
+    </script>
+</body>
+</html>
